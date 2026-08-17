@@ -1,0 +1,6 @@
+{
+  "name": "Lifvox SellvoraPro - E-Commerce Commissions Platform",
+  "description": "Partner with top e-commerce brands, grab orders, handle sales, and earn commissions.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
