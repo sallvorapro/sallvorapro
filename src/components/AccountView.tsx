@@ -105,7 +105,7 @@ export const AccountView: React.FC<AccountViewProps> = ({
   ];
 
   return (
-    <div className="p-6 md:p-8 max-w-4xl mx-auto space-y-6 pb-24">
+    <div className="p-4 sm:p-6 md:p-8 max-w-4xl mx-auto space-y-5 sm:space-y-6 pb-16">
       {/* Top Profile Header (Green Background) */}
       <div className="w-full bg-[#00A651] rounded-3xl p-6 md:p-8 text-white shadow-md shadow-emerald-700/15">
         {/* User Info Bar */}

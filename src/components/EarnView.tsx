@@ -62,7 +62,7 @@ export const EarnView: React.FC<EarnViewProps> = ({ user, onOpenGrabOrder }) => 
   });
 
   return (
-    <div className="p-6 md:p-8 max-w-5xl mx-auto space-y-6 pb-20">
+    <div className="p-4 sm:p-6 md:p-8 max-w-5xl mx-auto space-y-5 sm:space-y-6 pb-16">
       {/* Centered Page Header */}
       <div className="text-center">
         <h2 className="text-2xl font-extrabold text-gray-900">Earn</h2>

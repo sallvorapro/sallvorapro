@@ -51,7 +51,7 @@ export const RecordView: React.FC<RecordViewProps> = ({ orders, onOpenEarn }) =>
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 p-6 max-w-4xl w-full mx-auto">
+      <div className="flex-1 p-4 sm:p-6 max-w-4xl w-full mx-auto pb-16 md:pb-12">
         {currentList.length === 0 ? (
           <div className="py-24 text-center flex flex-col items-center justify-center">
             <div className="w-16 h-16 rounded-full bg-gray-100 text-gray-400 flex items-center justify-center mb-4">

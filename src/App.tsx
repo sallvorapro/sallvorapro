@@ -5,6 +5,8 @@
 
 import React, { useState } from 'react';
 import { Sidebar } from './components/Sidebar';
+import { MobileTopHeader } from './components/MobileTopHeader';
+import { MobileDrawer } from './components/MobileDrawer';
 import { AuthScreen } from './components/AuthScreen';
 import { HomeView } from './components/HomeView';
 import { EarnView } from './components/EarnView';
@@ -32,6 +34,9 @@ export default function App() {
   const [user, setUser] = useState<UserProfile>(initialUser);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Mobile drawer state
+  const [isMobileDrawerOpen, setIsMobileDrawerOpen] = useState(false);
 
   // Modals state
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
@@ -114,16 +119,16 @@ export default function App() {
   }
 
   return (
-    <div className="min-h-screen flex bg-gray-50 text-gray-900 font-sans">
+    <div className="min-h-screen flex flex-col md:flex-row bg-gray-50 text-gray-900 font-sans">
       {/* Toast Notification */}
       {toastMessage && (
-        <div className="fixed top-5 right-5 z-50 bg-[#00A651] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-top-4 duration-200">
-          <CheckCircle2 className="w-4 h-4" />
+        <div className="fixed top-4 right-4 sm:top-5 sm:right-5 z-50 bg-[#00A651] text-white px-4 py-3 rounded-2xl shadow-xl flex items-center gap-2.5 text-xs font-bold animate-in fade-in slide-in-from-top-4 duration-200 max-w-[90vw]">
+          <CheckCircle2 className="w-4 h-4 shrink-0" />
           <span>{toastMessage}</span>
         </div>
       )}
 
-      {/* Left Sidebar */}
+      {/* Desktop Left Sidebar (hidden on mobile) */}
       <Sidebar
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
@@ -134,8 +139,33 @@ export default function App() {
         }}
       />
 
+      {/* Mobile Top Header (hidden on desktop) */}
+      <MobileTopHeader
+        user={user}
+        onOpenDrawer={() => setIsMobileDrawerOpen(true)}
+        onNavigateToAccount={() => setCurrentTab('account')}
+      />
+
+      {/* Mobile Slide-out Drawer */}
+      <MobileDrawer
+        isOpen={isMobileDrawerOpen}
+        onClose={() => setIsMobileDrawerOpen(false)}
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
+        user={user}
+        onLogout={() => {
+          setIsAuthenticated(false);
+          showToast('Logged out successfully');
+        }}
+        onOpenRecharge={() => setIsRechargeOpen(true)}
+        onOpenWithdrawal={() => setIsWithdrawOpen(true)}
+        onOpenTeams={() => setIsTeamsOpen(true)}
+        onOpenInvite={() => setIsInviteOpen(true)}
+        onOpenLeaderboard={() => setIsLeaderboardOpen(true)}
+      />
+
       {/* Main Content View Container */}
-      <main className="flex-1 min-h-screen overflow-y-auto">
+      <main className="flex-1 min-h-screen overflow-y-auto w-full min-w-0">
         {currentTab === 'home' && (
           <HomeView
             user={user}

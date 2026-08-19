@@ -151,22 +151,22 @@ export const HomeView: React.FC<HomeViewProps> = ({
   ];
 
   return (
-    <div className="p-6 md:p-8 max-w-6xl mx-auto space-y-7 pb-16">
+    <div className="p-4 sm:p-6 md:p-8 max-w-6xl mx-auto space-y-6 pb-16">
       {/* Top Emerald Banner */}
-      <div className="w-full bg-[#00A651] rounded-3xl p-8 md:p-10 text-white shadow-lg shadow-emerald-700/15 relative overflow-hidden">
+      <div className="w-full bg-[#00A651] rounded-2xl sm:rounded-3xl p-6 sm:p-8 md:p-10 text-white shadow-lg shadow-emerald-700/15 relative overflow-hidden">
         <div className="absolute -right-16 -top-16 w-80 h-80 bg-emerald-400/20 rounded-full blur-2xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-100 block mb-2 opacity-95">
+          <span className="text-[10px] sm:text-[11px] font-extrabold uppercase tracking-wider text-emerald-100 block mb-2 opacity-95">
             E-COMMERCE COMMISSION PLATFORM
           </span>
-          <h2 className="text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-3">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl font-extrabold leading-tight tracking-tight mb-2.5">
             Earn commissions from top e-commerce brands
           </h2>
-          <p className="text-emerald-50 text-sm md:text-base leading-relaxed mb-6 font-medium max-w-xl">
+          <p className="text-emerald-50 text-xs sm:text-sm md:text-base leading-relaxed mb-5 font-medium max-w-xl">
             Partner with Amazon, eBay, and more. Grab product orders, handle sales, and earn commission on every transaction.
           </p>
 
-          <div className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full bg-black/15 backdrop-blur-xs text-xs font-semibold text-white border border-white/20">
+          <div className="inline-flex items-center gap-2 px-3 py-1 sm:px-3.5 sm:py-1.5 rounded-full bg-black/15 backdrop-blur-xs text-[11px] sm:text-xs font-semibold text-white border border-white/20">
             <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
             <span>Live Orders Available</span>
           </div>
@@ -174,44 +174,44 @@ export const HomeView: React.FC<HomeViewProps> = ({
       </div>
 
       {/* 4 Metric Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
-            <TrendingUp className="w-6 h-6" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
+            <TrendingUp className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-gray-900">$2.5M+</div>
-            <div className="text-xs text-gray-500 font-medium">Daily Volume</div>
+            <div className="text-lg sm:text-xl font-extrabold text-gray-900">$2.5M+</div>
+            <div className="text-[11px] sm:text-xs text-gray-500 font-medium">Daily Volume</div>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
-            <Users className="w-6 h-6" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
+            <Users className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-gray-900">50K+</div>
-            <div className="text-xs text-gray-500 font-medium">Active Users</div>
+            <div className="text-lg sm:text-xl font-extrabold text-gray-900">50K+</div>
+            <div className="text-[11px] sm:text-xs text-gray-500 font-medium">Active Users</div>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
-            <ShieldCheck className="w-6 h-6" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
+            <ShieldCheck className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-gray-900">99.9%</div>
-            <div className="text-xs text-gray-500 font-medium">Security Rate</div>
+            <div className="text-lg sm:text-xl font-extrabold text-gray-900">99.9%</div>
+            <div className="text-[11px] sm:text-xs text-gray-500 font-medium">Security Rate</div>
           </div>
         </div>
 
-        <div className="bg-white p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-4">
-          <div className="w-12 h-12 rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
-            <Zap className="w-6 h-6" />
+        <div className="bg-white p-4 sm:p-5 rounded-2xl border border-gray-200/80 shadow-xs flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl bg-emerald-50 text-[#00A651] flex items-center justify-center shrink-0">
+            <Zap className="w-5 h-5 sm:w-6 sm:h-6" />
           </div>
           <div>
-            <div className="text-xl font-extrabold text-gray-900">&lt;1s</div>
-            <div className="text-xs text-gray-500 font-medium">Avg. Speed</div>
+            <div className="text-lg sm:text-xl font-extrabold text-gray-900">&lt;1s</div>
+            <div className="text-[11px] sm:text-xs text-gray-500 font-medium">Avg. Speed</div>
           </div>
         </div>
       </div>
