@@ -8,6 +8,7 @@ import {
   ExternalLink,
   ChevronDown,
   ChevronUp,
+  CheckCircle2,
 } from 'lucide-react';
 import { faqsList } from '../mockData';
 
@@ -19,22 +20,28 @@ export const SupportView: React.FC<SupportViewProps> = ({ onOpenLiveChat }) => {
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
   const [showFaqModal, setShowFaqModal] = useState(false);
 
+  const handleOpenTelegram = () => {
+    window.open('https://t.me/Sallvorapro', '_blank', 'noopener,noreferrer');
+  };
+
   const topCards = [
     {
       id: 'customer-service',
       title: 'Customer Service',
-      desc: '24/7 online support for all your needs',
+      desc: 'Contact official support on Telegram @Sallvorapro',
       icon: Headphones,
       iconBg: 'bg-blue-50 text-blue-500',
-      action: onOpenLiveChat,
+      action: handleOpenTelegram,
+      badge: '@Sallvorapro',
     },
     {
       id: 'live-chat',
       title: 'Live Chat',
-      desc: 'Chat with our team in real-time',
+      desc: 'Chat with our AI assistant in real-time',
       icon: MessageSquare,
       iconBg: 'bg-emerald-50 text-emerald-500',
       action: onOpenLiveChat,
+      badge: 'Online',
     },
     {
       id: 'faq',
@@ -60,8 +67,40 @@ export const SupportView: React.FC<SupportViewProps> = ({ onOpenLiveChat }) => {
       <div>
         <h2 className="text-2xl font-extrabold text-gray-900">Support</h2>
         <p className="text-xs text-gray-500 mt-1 font-medium">
-          Get help and support for your account
+          Get help and 24/7 customer service for your account
         </p>
+      </div>
+
+      {/* Featured Telegram Customer Service Banner */}
+      <div className="w-full bg-gradient-to-r from-[#00A651] via-emerald-600 to-teal-700 rounded-3xl p-6 text-white shadow-lg shadow-emerald-700/15 relative overflow-hidden flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          <div className="w-14 h-14 rounded-2xl bg-white/20 border border-white/30 backdrop-blur-md flex items-center justify-center text-white shrink-0 shadow-inner">
+            <Send className="w-7 h-7" />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="text-[10px] font-extrabold uppercase tracking-wider bg-white/20 px-2 py-0.5 rounded-full">
+                OFFICIAL CUSTOMER SERVICE
+              </span>
+              <span className="w-2 h-2 rounded-full bg-emerald-300 animate-ping"></span>
+            </div>
+            <h3 className="text-lg sm:text-xl font-extrabold mt-1">
+              Telegram: <span className="text-emerald-100">@Sallvorapro</span>
+            </h3>
+            <p className="text-xs text-emerald-100/90 font-medium mt-0.5">
+              Available 24/7 for deposit, withdrawal, and order inquiries.
+            </p>
+          </div>
+        </div>
+
+        <button
+          id="btn-telegram-cs-banner"
+          onClick={handleOpenTelegram}
+          className="w-full sm:w-auto px-6 py-3 bg-white text-[#00A651] hover:bg-emerald-50 active:scale-95 font-bold rounded-2xl text-xs sm:text-sm shadow-md transition-all flex items-center justify-center gap-2 shrink-0"
+        >
+          <Send className="w-4 h-4" />
+          <span>Contact @Sallvorapro</span>
+        </button>
       </div>
 
       {/* 4 Action Cards Grid */}
@@ -74,8 +113,13 @@ export const SupportView: React.FC<SupportViewProps> = ({ onOpenLiveChat }) => {
               onClick={card.action}
               className="bg-white rounded-3xl p-5 border border-gray-200/80 shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between relative group"
             >
-              <div className="absolute top-4 right-4 text-gray-300 group-hover:text-gray-600 transition-colors">
-                <ExternalLink className="w-4 h-4" />
+              <div className="absolute top-4 right-4 flex items-center gap-1.5">
+                {card.badge && (
+                  <span className="text-[10px] font-bold px-2 py-0.5 bg-emerald-50 text-[#00A651] rounded-full border border-emerald-200/60">
+                    {card.badge}
+                  </span>
+                )}
+                <ExternalLink className="w-4 h-4 text-gray-300 group-hover:text-gray-600 transition-colors" />
               </div>
               <div>
                 <div
@@ -96,10 +140,33 @@ export const SupportView: React.FC<SupportViewProps> = ({ onOpenLiveChat }) => {
         <h3 className="text-sm font-extrabold text-gray-900">Need Quick Help?</h3>
 
         <div className="space-y-3">
+          {/* Chat on Telegram Item */}
+          <div
+            id="btn-telegram-cs-item"
+            onClick={handleOpenTelegram}
+            className="p-4 bg-emerald-50/50 hover:bg-emerald-50 rounded-2xl border border-emerald-200/70 flex items-center justify-between cursor-pointer transition-colors group"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-xl bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                <Send className="w-5 h-5" />
+              </div>
+              <div>
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs font-bold text-gray-900">Telegram Customer Service</h4>
+                  <span className="text-[10px] font-extrabold text-[#00A651] bg-white px-2 py-0.5 rounded-md border border-emerald-200">
+                    @Sallvorapro
+                  </span>
+                </div>
+                <p className="text-[11px] text-gray-500 mt-0.5">Click to chat directly with official support on Telegram</p>
+              </div>
+            </div>
+            <ExternalLink className="w-4 h-4 text-emerald-600 group-hover:translate-x-0.5 transition-transform" />
+          </div>
+
           {/* Browse FAQ Item */}
           <div
             onClick={() => setShowFaqModal(true)}
-            className="p-4 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl border border-emerald-100 flex items-center justify-between cursor-pointer transition-colors"
+            className="p-4 bg-gray-50 hover:bg-gray-100/80 rounded-2xl border border-gray-200/70 flex items-center justify-between cursor-pointer transition-colors"
           >
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center">
@@ -112,29 +179,12 @@ export const SupportView: React.FC<SupportViewProps> = ({ onOpenLiveChat }) => {
             </div>
             <ExternalLink className="w-4 h-4 text-gray-400" />
           </div>
-
-          {/* Chat on Telegram Item */}
-          <div
-            onClick={() => alert('Redirecting to official 24/7 Telegram channel @SellvoraSupportBot')}
-            className="p-4 bg-emerald-50/40 hover:bg-emerald-50/80 rounded-2xl border border-emerald-100 flex items-center justify-between cursor-pointer transition-colors"
-          >
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-blue-100 text-blue-600 flex items-center justify-center">
-                <Send className="w-5 h-5" />
-              </div>
-              <div>
-                <h4 className="text-xs font-bold text-gray-900">Chat on Telegram</h4>
-                <p className="text-[11px] text-gray-500">Get instant support from our team</p>
-              </div>
-            </div>
-            <ExternalLink className="w-4 h-4 text-gray-400" />
-          </div>
         </div>
       </div>
 
       {/* Footer text */}
       <div className="text-center text-xs text-gray-400 font-medium pt-2">
-        Our support team is available 24/7 to assist you
+        Official Customer Service Telegram: <span className="font-bold text-[#00A651]">@Sallvorapro</span>
       </div>
 
       {/* FAQ Drawer / Modal */}

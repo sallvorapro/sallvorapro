@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { X, Send, Headphones, CheckCheck, Bot, User } from 'lucide-react';
+import { X, Send, Headphones, CheckCheck, Bot, User, ExternalLink } from 'lucide-react';
 import { SupportMessage } from '../../types';
 
 interface LiveChatModalProps {
@@ -15,7 +15,7 @@ export const LiveChatModal: React.FC<LiveChatModalProps> = ({
     {
       id: 'm1',
       sender: 'agent',
-      text: 'Hello! Welcome to Lifvox / SellvoraPro Official Customer Support. How can we assist you with your orders or account today?',
+      text: 'Hello! Welcome to Lifvox / SellvoraPro 24/7 VIP Support. For instant direct assistance, you can also reach our official Telegram customer service: @Sallvorapro',
       time: 'Just now',
     },
   ]);
@@ -23,6 +23,10 @@ export const LiveChatModal: React.FC<LiveChatModalProps> = ({
   const [isTyping, setIsTyping] = useState(false);
 
   if (!isOpen) return null;
+
+  const handleOpenTelegram = () => {
+    window.open('https://t.me/Sallvorapro', '_blank', 'noopener,noreferrer');
+  };
 
   const handleSend = (e: React.FormEvent) => {
     e.preventDefault();
@@ -42,14 +46,16 @@ export const LiveChatModal: React.FC<LiveChatModalProps> = ({
 
     setTimeout(() => {
       setIsTyping(false);
-      let reply = 'Thank you for reaching out! A senior support specialist is reviewing your request. For urgent balance/order issues, our Telegram channel is also active 24/7.';
+      let reply = 'Thank you for reaching out! A support manager is reviewing your inquiry. You can also chat directly on Telegram @Sallvorapro for instant resolutions.';
       const lower = currentInput.toLowerCase();
       if (lower.includes('deposit') || lower.includes('recharge')) {
-        reply = 'Deposits are credited automatically via TRC20/ERC20 after 1-3 blockchain block confirmations. You can view your deposit address under Quick Actions > Recharge.';
+        reply = 'Deposits are credited automatically via TRC20/ERC20 after 1-3 blockchain block confirmations. For payment confirmation assistance, contact @Sallvorapro on Telegram.';
       } else if (lower.includes('withdraw')) {
-        reply = 'Withdrawals are processed around the clock with zero platform fees. Please ensure your USDT wallet address is accurate.';
+        reply = 'Withdrawals are processed around the clock with zero platform fees. Please ensure your USDT wallet address is accurate or verify via @Sallvorapro.';
       } else if (lower.includes('order') || lower.includes('grab')) {
         reply = 'To grab orders, go to the Earn tab and click on Amazon or eBay. You will earn a 4% commission on VIP 1 Bronze!';
+      } else if (lower.includes('telegram') || lower.includes('contact') || lower.includes('help')) {
+        reply = 'Official Customer Service Telegram ID: @Sallvorapro (https://t.me/Sallvorapro). We are online 24/7!';
       }
 
       setMessages((prev) => [
@@ -66,7 +72,7 @@ export const LiveChatModal: React.FC<LiveChatModalProps> = ({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-      <div className="bg-white rounded-3xl max-w-lg w-full h-[540px] shadow-2xl flex flex-col relative border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200">
+      <div className="bg-white rounded-3xl max-w-lg w-full h-[560px] shadow-2xl flex flex-col relative border border-gray-100 overflow-hidden animate-in fade-in zoom-in duration-200">
         {/* Header */}
         <div className="p-4 bg-[#00A651] text-white flex items-center justify-between shadow-xs">
           <div className="flex items-center gap-3">
@@ -78,7 +84,7 @@ export const LiveChatModal: React.FC<LiveChatModalProps> = ({
                 <h3 className="font-bold text-sm">Lifvox VIP Live Support</h3>
                 <span className="w-2 h-2 rounded-full bg-emerald-300 animate-pulse"></span>
               </div>
-              <p className="text-[11px] text-emerald-100 font-medium">Average reply time: &lt;1 minute</p>
+              <p className="text-[11px] text-emerald-100 font-medium">Telegram: @Sallvorapro</p>
             </div>
           </div>
           <button
@@ -87,6 +93,22 @@ export const LiveChatModal: React.FC<LiveChatModalProps> = ({
           >
             <X className="w-4 h-4" />
           </button>
+        </div>
+
+        {/* Telegram Direct Action Bar */}
+        <div
+          onClick={handleOpenTelegram}
+          className="bg-emerald-50 px-4 py-2.5 border-b border-emerald-100 flex items-center justify-between cursor-pointer hover:bg-emerald-100/70 transition-colors"
+        >
+          <div className="flex items-center gap-2">
+            <Send className="w-4 h-4 text-[#00A651]" />
+            <span className="text-xs font-bold text-gray-800">
+              Direct Telegram CS: <span className="text-[#00A651]">@Sallvorapro</span>
+            </span>
+          </div>
+          <span className="text-[11px] text-[#00A651] font-extrabold flex items-center gap-1">
+            Open <ExternalLink className="w-3 h-3" />
+          </span>
         </div>
 
         {/* Message Area */}
