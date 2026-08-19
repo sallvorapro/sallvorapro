@@ -55,9 +55,25 @@ import {
 } from './services/supabaseService';
 
 export default function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(true);
+  // Check if session already exists in localStorage; otherwise user MUST log in or create an account!
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(() => {
+    try {
+      return Boolean(localStorage.getItem('sellvora_user_session'));
+    } catch {
+      return false;
+    }
+  });
+
+  const [user, setUser] = useState<UserProfile>(() => {
+    try {
+      const saved = localStorage.getItem('sellvora_user_session');
+      return saved ? JSON.parse(saved) : initialUser;
+    } catch {
+      return initialUser;
+    }
+  });
+
   const [currentTab, setCurrentTab] = useState<NavigationTab>('home');
-  const [user, setUser] = useState<UserProfile>(initialUser);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
 
@@ -81,6 +97,7 @@ export default function App() {
 
   // Initial Supabase Sync
   useEffect(() => {
+    if (!isAuthenticated) return;
     async function initSupabaseData() {
       try {
         // Sync active user profile
@@ -99,7 +116,7 @@ export default function App() {
       }
     }
     initSupabaseData();
-  }, []);
+  }, [isAuthenticated]);
 
   const showToast = (msg: string) => {
     setToastMessage(msg);
@@ -115,11 +132,19 @@ export default function App() {
     };
     setUser(fullUser);
     setIsAuthenticated(true);
+    try {
+      localStorage.setItem('sellvora_user_session', JSON.stringify(fullUser));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
 
     // Sync user with Supabase
     try {
       const synced = await syncUserProfile(fullUser);
       setUser(synced);
+      try {
+        localStorage.setItem('sellvora_user_session', JSON.stringify(synced));
+      } catch {}
       const userOrders = await fetchUserOrdersFromSupabase(synced.id, []);
       if (userOrders.length > 0) setOrders(userOrders);
     } catch (e) {
@@ -136,12 +161,21 @@ export default function App() {
     }
   };
 
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('sellvora_user_session');
+    } catch {}
+    setIsAuthenticated(false);
+    showToast('Logged out successfully');
+  };
+
   const handleDepositSuccess = (amount: number) => {
     const newBal = user.balance + amount;
-    setUser((prev) => ({
-      ...prev,
-      balance: newBal,
-    }));
+    const updatedUser = { ...user, balance: newBal };
+    setUser(updatedUser);
+    try {
+      localStorage.setItem('sellvora_user_session', JSON.stringify(updatedUser));
+    } catch {}
 
     // Create deposit request record
     const newDepReq: DepositRequest = {
@@ -166,10 +200,11 @@ export default function App() {
 
   const handleWithdrawSuccess = (amount: number) => {
     const newBal = Math.max(0, user.balance - amount);
-    setUser((prev) => ({
-      ...prev,
-      balance: newBal,
-    }));
+    const updatedUser = { ...user, balance: newBal };
+    setUser(updatedUser);
+    try {
+      localStorage.setItem('sellvora_user_session', JSON.stringify(updatedUser));
+    } catch {}
 
     // Create pending withdrawal request
     const newWthReq: WithdrawalRequest = {
@@ -206,15 +241,19 @@ export default function App() {
     }
 
     const newBal = user.balance + newOrder.commissionEarned;
-
-    setUser((prev) => ({
-      ...prev,
+    const updatedUser: UserProfile = {
+      ...user,
       balance: newBal,
       completedOrdersCount: newCompleted,
       vipLevel: newVipLevel,
       vipName: newVipName,
       commissionRate: newRate,
-    }));
+    };
+
+    setUser(updatedUser);
+    try {
+      localStorage.setItem('sellvora_user_session', JSON.stringify(updatedUser));
+    } catch {}
 
     // Persist to Supabase
     saveUserBalance(user.id, user.email, newBal, newCompleted, newVipLevel, newVipName, newRate);
@@ -237,13 +276,17 @@ export default function App() {
       setManagedUsers((prev) => [updatedUser, ...prev]);
     }
     if (updatedUser.id === user.id || updatedUser.email === user.email) {
-      setUser((prev) => ({
-        ...prev,
+      const updatedCurrUser = {
+        ...user,
         balance: updatedUser.balance,
         vipLevel: updatedUser.vipLevel,
         vipName: updatedUser.vipName,
         commissionRate: updatedUser.commissionRate,
-      }));
+      };
+      setUser(updatedCurrUser);
+      try {
+        localStorage.setItem('sellvora_user_session', JSON.stringify(updatedCurrUser));
+      } catch {}
     }
     // Update user in Supabase
     saveUserBalance(
@@ -311,6 +354,7 @@ export default function App() {
     setWithdrawalRequests((prev) =>
       prev.map((w) => {
         if (w.id === withdrawalId) {
+          // Refund user balance
           setManagedUsers((uList) =>
             uList.map((u) =>
               u.id === w.userId || u.email === w.email
@@ -327,6 +371,7 @@ export default function App() {
     showToast('Withdrawal rejected and funds refunded to user.');
   };
 
+  // If user is not logged in, render the Auth/Login screen
   if (!isAuthenticated) {
     return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
   }
@@ -347,10 +392,7 @@ export default function App() {
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
         onNavigateToAccount={() => setCurrentTab('account')}
-        onLogout={() => {
-          setIsAuthenticated(false);
-          showToast('Logged out successfully');
-        }}
+        onLogout={handleLogout}
       />
 
       {/* Main Content View Container */}
@@ -495,7 +537,11 @@ export default function App() {
         onClose={() => setIsKYCOpen(false)}
         user={user}
         onVerifySuccess={() => {
-          setUser((prev) => ({ ...prev, isVerified: true }));
+          const verifiedUser = { ...user, isVerified: true };
+          setUser(verifiedUser);
+          try {
+            localStorage.setItem('sellvora_user_session', JSON.stringify(verifiedUser));
+          } catch {}
           showToast('Identity verification approved!');
         }}
       />

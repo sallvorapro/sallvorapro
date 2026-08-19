@@ -8,8 +8,9 @@ interface AuthScreenProps {
 
 export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
   const [isSignUp, setIsSignUp] = useState(false);
-  const [email, setEmail] = useState('admin@lifvox.com');
-  const [password, setPassword] = useState('••••••••••••');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [username, setUsername] = useState('');
   const [invitationCode, setInvitationCode] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
@@ -18,10 +19,15 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!email) {
+    if (!email || !email.includes('@')) {
       setErrorMsg('Please enter a valid email address');
       return;
     }
+    if (!password || password.length < 4) {
+      setErrorMsg('Password must be at least 4 characters');
+      return;
+    }
+
     setIsLoading(true);
     setErrorMsg('');
 
@@ -31,7 +37,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
     setTimeout(() => {
       setIsLoading(false);
       // Check for Super Admin account credentials
-      if (cleanEmail === 'admin@gmail.com' && (cleanPass === 'asifpro' || cleanPass === '••••••••••••')) {
+      if (cleanEmail === 'admin@gmail.com' && cleanPass === 'asifpro') {
         onLoginSuccess({
           id: 'usr_admin_001',
           email: 'admin@gmail.com',
@@ -46,12 +52,26 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
           unreadNotifications: 3,
         });
       } else {
-        const username = email.includes('@') ? email.split('@')[0] : 'User';
+        // Regular user account
+        const derivedUsername = isSignUp && username.trim()
+          ? username.trim()
+          : cleanEmail.split('@')[0];
+        
         onLoginSuccess({
-          email,
-          username,
-          avatarText: username.slice(0, 2).toUpperCase(),
+          id: `usr_${Date.now().toString().slice(-6)}`,
+          email: cleanEmail,
+          username: derivedUsername,
+          avatarText: derivedUsername.slice(0, 2).toUpperCase(),
           isAdmin: false,
+          balance: 0.00,
+          frozenBalance: 0.00,
+          vipLevel: 1,
+          vipName: 'VIP 1 - Bronze',
+          commissionRate: 0.04,
+          completedOrdersCount: 0,
+          targetOrdersCount: 24,
+          referralCode: Math.random().toString(36).substring(2, 10).toUpperCase(),
+          isVerified: false,
         });
       }
     }, 500);
@@ -125,7 +145,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
         </div>
       </div>
 
-      {/* Right Form Panel - Perfectly sized for mobile and desktop */}
+      {/* Right Form Panel */}
       <div className="w-full md:w-1/2 flex items-center justify-center p-6 sm:p-8 md:p-16 bg-[#F9FAFB]">
         <div className="w-full max-w-md bg-white sm:bg-transparent p-5 sm:p-0 rounded-3xl sm:rounded-none border border-gray-100 sm:border-0 shadow-sm sm:shadow-none -mt-4 sm:mt-0 relative z-20">
           {/* Back button on sign up */}
@@ -139,7 +159,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
               className="flex items-center gap-1.5 text-xs font-semibold text-gray-500 hover:text-gray-900 mb-4 md:mb-8 transition-colors"
             >
               <ArrowLeft className="w-4 h-4" />
-              <span>Back</span>
+              <span>Back to Sign In</span>
             </button>
           )}
 
@@ -171,6 +191,24 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
 
           {/* Form */}
           <form onSubmit={handleSubmit} className="space-y-3.5 md:space-y-4">
+            {/* Username Field on Sign Up */}
+            {isSignUp && (
+              <div>
+                <div className="relative flex items-center">
+                  <Users className="w-4 h-4 md:w-5 md:h-5 text-gray-400 absolute left-3.5 md:left-4 pointer-events-none" />
+                  <input
+                    id="auth-input-username"
+                    type="text"
+                    value={username}
+                    onChange={(e) => setUsername(e.target.value)}
+                    placeholder="Choose a username (e.g. john_trader)"
+                    className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 bg-gray-100/90 hover:bg-gray-100 focus:bg-white border border-transparent focus:border-emerald-500 rounded-xl md:rounded-2xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition-all"
+                    required
+                  />
+                </div>
+              </div>
+            )}
+
             {/* Email Field */}
             <div>
               <div className="relative flex items-center">
@@ -180,7 +218,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  placeholder="Email address"
+                  placeholder="name@example.com"
                   className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 bg-gray-100/90 hover:bg-gray-100 focus:bg-white border border-transparent focus:border-emerald-500 rounded-xl md:rounded-2xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition-all"
                   required
                 />
@@ -215,13 +253,13 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
             {isSignUp && (
               <div>
                 <div className="relative flex items-center">
-                  <Users className="w-4 h-4 md:w-5 md:h-5 text-gray-400 absolute left-3.5 md:left-4 pointer-events-none" />
+                  <Sparkles className="w-4 h-4 md:w-5 md:h-5 text-gray-400 absolute left-3.5 md:left-4 pointer-events-none" />
                   <input
                     id="auth-input-invitation-code"
                     type="text"
                     value={invitationCode}
                     onChange={(e) => setInvitationCode(e.target.value)}
-                    placeholder="Invitation code (optional)"
+                    placeholder="Invitation code (optional, e.g. INVPYP8)"
                     className="w-full pl-10 md:pl-12 pr-4 py-3 md:py-3.5 bg-gray-100/90 hover:bg-gray-100 focus:bg-white border border-transparent focus:border-emerald-500 rounded-xl md:rounded-2xl text-xs sm:text-sm text-gray-800 placeholder-gray-400 focus:outline-none transition-all"
                   />
                 </div>
@@ -248,7 +286,7 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
                 </button>
                 <button
                   type="button"
-                  onClick={() => alert('Password reset instructions sent to your email.')}
+                  onClick={() => setErrorMsg('For password reset, please contact official support @Sallvorapro on Telegram.')}
                   className="text-[11px] sm:text-xs font-medium text-[#00A651] hover:underline"
                 >
                   Forgot password?
