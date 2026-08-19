@@ -3,7 +3,7 @@
  * SPDX-License-Identifier: Apache-2.0
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { TopHeader } from './components/TopHeader';
 import { BottomNavBar } from './components/BottomNavBar';
 import { AuthScreen } from './components/AuthScreen';
@@ -41,6 +41,18 @@ import {
   PlatformSettings,
 } from './types';
 import { CheckCircle2, MessageSquare } from 'lucide-react';
+import {
+  syncUserProfile,
+  saveUserBalance,
+  fetchAllManagedUsers,
+  recordNewOrder,
+  fetchUserOrdersFromSupabase,
+  recordDepositRequest,
+  updateDepositStatusInSupabase,
+  recordWithdrawalRequest,
+  updateWithdrawalStatusInSupabase,
+  savePlatformSettingsInSupabase,
+} from './services/supabaseService';
 
 export default function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(true);
@@ -67,6 +79,28 @@ export default function App() {
   const [isKYCOpen, setIsKYCOpen] = useState(false);
   const [isSecurityOpen, setIsSecurityOpen] = useState(false);
 
+  // Initial Supabase Sync
+  useEffect(() => {
+    async function initSupabaseData() {
+      try {
+        // Sync active user profile
+        const syncedUser = await syncUserProfile(user);
+        setUser(syncedUser);
+
+        // Fetch user orders
+        const syncedOrders = await fetchUserOrdersFromSupabase(syncedUser.id, orders);
+        setOrders(syncedOrders);
+
+        // Fetch managed users for admin
+        const syncedManagedUsers = await fetchAllManagedUsers(initialManagedUsers);
+        setManagedUsers(syncedManagedUsers);
+      } catch (err) {
+        console.warn('Initial Supabase sync fallback:', err);
+      }
+    }
+    initSupabaseData();
+  }, []);
+
   const showToast = (msg: string) => {
     setToastMessage(msg);
     setTimeout(() => {
@@ -74,12 +108,24 @@ export default function App() {
     }, 3000);
   };
 
-  const handleLoginSuccess = (loginData: Partial<UserProfile>) => {
-    setUser((prev) => ({
-      ...prev,
+  const handleLoginSuccess = async (loginData: Partial<UserProfile>) => {
+    const fullUser: UserProfile = {
+      ...user,
       ...loginData,
-    }));
+    };
+    setUser(fullUser);
     setIsAuthenticated(true);
+
+    // Sync user with Supabase
+    try {
+      const synced = await syncUserProfile(fullUser);
+      setUser(synced);
+      const userOrders = await fetchUserOrdersFromSupabase(synced.id, []);
+      if (userOrders.length > 0) setOrders(userOrders);
+    } catch (e) {
+      console.warn('Login sync fallback:', e);
+    }
+
     // If admin logs in, default to Admin dashboard or home
     if (loginData.isAdmin) {
       setCurrentTab('admin');
@@ -91,11 +137,13 @@ export default function App() {
   };
 
   const handleDepositSuccess = (amount: number) => {
+    const newBal = user.balance + amount;
     setUser((prev) => ({
       ...prev,
-      balance: prev.balance + amount,
+      balance: newBal,
     }));
-    // Also create a deposit request record for admin
+
+    // Create deposit request record
     const newDepReq: DepositRequest = {
       id: `dep_${Date.now()}`,
       userId: user.id,
@@ -108,15 +156,22 @@ export default function App() {
       createdAt: 'Just now',
     };
     setDepositRequests((prev) => [newDepReq, ...prev]);
+
+    // Save to Supabase
+    saveUserBalance(user.id, user.email, newBal);
+    recordDepositRequest(newDepReq);
+
     showToast(`Successfully deposited +${amount.toFixed(2)} USDT!`);
   };
 
   const handleWithdrawSuccess = (amount: number) => {
+    const newBal = Math.max(0, user.balance - amount);
     setUser((prev) => ({
       ...prev,
-      balance: Math.max(0, prev.balance - amount),
+      balance: newBal,
     }));
-    // Create pending withdrawal request in admin panel
+
+    // Create pending withdrawal request
     const newWthReq: WithdrawalRequest = {
       id: `wth_${Date.now()}`,
       userId: user.id,
@@ -129,32 +184,42 @@ export default function App() {
       createdAt: 'Just now',
     };
     setWithdrawalRequests((prev) => [newWthReq, ...prev]);
+
+    // Save to Supabase
+    saveUserBalance(user.id, user.email, newBal);
+    recordWithdrawalRequest(newWthReq);
+
     showToast(`Withdrawal of ${amount.toFixed(2)} USDT submitted for processing.`);
   };
 
   const handleOrderCompleted = (newOrder: OrderItem) => {
     setOrders((prev) => [newOrder, ...prev]);
-    setUser((prev) => {
-      const newCompleted = prev.completedOrdersCount + 1;
-      let newVipLevel = prev.vipLevel;
-      let newVipName = prev.vipName;
-      let newRate = prev.commissionRate;
+    const newCompleted = user.completedOrdersCount + 1;
+    let newVipLevel = user.vipLevel;
+    let newVipName = user.vipName;
+    let newRate = user.commissionRate;
 
-      if (newCompleted >= 24) {
-        newVipLevel = 2;
-        newVipName = 'VIP 2 - Silver';
-        newRate = 0.045;
-      }
+    if (newCompleted >= 24) {
+      newVipLevel = 2;
+      newVipName = 'VIP 2 - Silver';
+      newRate = 0.045;
+    }
 
-      return {
-        ...prev,
-        balance: prev.balance + newOrder.commissionEarned,
-        completedOrdersCount: newCompleted,
-        vipLevel: newVipLevel,
-        vipName: newVipName,
-        commissionRate: newRate,
-      };
-    });
+    const newBal = user.balance + newOrder.commissionEarned;
+
+    setUser((prev) => ({
+      ...prev,
+      balance: newBal,
+      completedOrdersCount: newCompleted,
+      vipLevel: newVipLevel,
+      vipName: newVipName,
+      commissionRate: newRate,
+    }));
+
+    // Persist to Supabase
+    saveUserBalance(user.id, user.email, newBal, newCompleted, newVipLevel, newVipName, newRate);
+    recordNewOrder(newOrder, user.id, user.username);
+
     showToast(`Commission +${newOrder.commissionEarned.toFixed(2)} USDT credited!`);
   };
 
@@ -168,11 +233,9 @@ export default function App() {
     setManagedUsers((prev) =>
       prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
     );
-    // If not found (new user created), add it
     if (!managedUsers.some((u) => u.id === updatedUser.id)) {
       setManagedUsers((prev) => [updatedUser, ...prev]);
     }
-    // If the admin edited the current user account
     if (updatedUser.id === user.id || updatedUser.email === user.email) {
       setUser((prev) => ({
         ...prev,
@@ -182,6 +245,16 @@ export default function App() {
         commissionRate: updatedUser.commissionRate,
       }));
     }
+    // Update user in Supabase
+    saveUserBalance(
+      updatedUser.id,
+      updatedUser.email,
+      updatedUser.balance,
+      updatedUser.completedOrdersCount,
+      updatedUser.vipLevel,
+      updatedUser.vipName,
+      updatedUser.commissionRate
+    );
     showToast(`User ${updatedUser.username} updated successfully!`);
   };
 
@@ -189,7 +262,6 @@ export default function App() {
     setDepositRequests((prev) =>
       prev.map((d) => {
         if (d.id === depositId) {
-          // Credit user balance in managed users
           setManagedUsers((uList) =>
             uList.map((u) =>
               u.id === d.userId || u.email === d.email
@@ -197,6 +269,8 @@ export default function App() {
                 : u
             )
           );
+          // Sync with Supabase
+          updateDepositStatusInSupabase(depositId, 'approved');
           return { ...d, status: 'approved' as const };
         }
         return d;
@@ -209,6 +283,7 @@ export default function App() {
     setDepositRequests((prev) =>
       prev.map((d) => (d.id === depositId ? { ...d, status: 'rejected' as const } : d))
     );
+    updateDepositStatusInSupabase(depositId, 'rejected');
     showToast('Deposit request rejected.');
   };
 
@@ -223,6 +298,7 @@ export default function App() {
                 : u
             )
           );
+          updateWithdrawalStatusInSupabase(withdrawalId, 'approved');
           return { ...w, status: 'approved' as const, processedAt: 'Just now' };
         }
         return w;
@@ -235,7 +311,6 @@ export default function App() {
     setWithdrawalRequests((prev) =>
       prev.map((w) => {
         if (w.id === withdrawalId) {
-          // Refund user balance
           setManagedUsers((uList) =>
             uList.map((u) =>
               u.id === w.userId || u.email === w.email
@@ -243,6 +318,7 @@ export default function App() {
                 : u
             )
           );
+          updateWithdrawalStatusInSupabase(withdrawalId, 'rejected');
           return { ...w, status: 'rejected' as const };
         }
         return w;
@@ -337,7 +413,8 @@ export default function App() {
             platformSettings={platformSettings}
             onUpdateSettings={(newSet) => {
               setPlatformSettings(newSet);
-              showToast('Platform settings saved!');
+              savePlatformSettingsInSupabase(newSet);
+              showToast('Platform settings saved and synced!');
             }}
             onExitAdminView={() => setCurrentTab('home')}
           />
