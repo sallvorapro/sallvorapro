@@ -1,4 +1,4 @@
-export type NavigationTab = 'home' | 'earn' | 'records' | 'support' | 'account';
+export type NavigationTab = 'home' | 'earn' | 'records' | 'support' | 'account' | 'admin';
 
 export interface UserProfile {
   id: string;
@@ -15,6 +15,9 @@ export interface UserProfile {
   isVerified: boolean;
   avatarText: string;
   unreadNotifications: number;
+  isAdmin?: boolean;
+  status?: 'active' | 'suspended' | 'frozen';
+  joinedDate?: string;
 }
 
 export interface OrderItem {
@@ -28,6 +31,8 @@ export interface OrderItem {
   status: 'pending' | 'completed' | 'cancelled';
   createdAt: string;
   completedAt?: string;
+  userId?: string;
+  username?: string;
 }
 
 export interface PartnerBrand {
@@ -47,6 +52,8 @@ export interface TransactionRecord {
   status: 'completed' | 'processing' | 'rejected';
   date: string;
   txHash?: string;
+  userId?: string;
+  username?: string;
 }
 
 export interface SupportMessage {
@@ -54,4 +61,56 @@ export interface SupportMessage {
   sender: 'user' | 'agent';
   text: string;
   time: string;
+}
+
+export interface ManagedUser {
+  id: string;
+  username: string;
+  email: string;
+  balance: number;
+  frozenBalance: number;
+  vipLevel: number;
+  vipName: string;
+  commissionRate: number;
+  completedOrdersCount: number;
+  isVerified: boolean;
+  status: 'active' | 'suspended' | 'frozen';
+  joinedDate: string;
+  totalDeposited: number;
+  totalWithdrawn: number;
+}
+
+export interface DepositRequest {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  amount: number;
+  network: string;
+  txHash: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  notes?: string;
+}
+
+export interface WithdrawalRequest {
+  id: string;
+  userId: string;
+  username: string;
+  email: string;
+  amount: number;
+  network: string;
+  walletAddress: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  processedAt?: string;
+  notes?: string;
+}
+
+export interface PlatformSettings {
+  minWithdrawal: number;
+  maxDailyOrders: number;
+  vipRates: { level: number; name: string; rate: number; minDeposit: number }[];
+  maintenanceMode: boolean;
+  announcement: string;
 }

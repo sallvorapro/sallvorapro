@@ -25,14 +25,35 @@ export const AuthScreen: React.FC<AuthScreenProps> = ({ onLoginSuccess }) => {
     setIsLoading(true);
     setErrorMsg('');
 
+    const cleanEmail = email.trim().toLowerCase();
+    const cleanPass = password.trim();
+
     setTimeout(() => {
       setIsLoading(false);
-      const username = email.includes('@') ? email.split('@')[0] : 'User';
-      onLoginSuccess({
-        email,
-        username,
-        avatarText: username.slice(0, 2).toUpperCase(),
-      });
+      // Check for Super Admin account credentials
+      if (cleanEmail === 'admin@gmail.com' && (cleanPass === 'asifpro' || cleanPass === '••••••••••••')) {
+        onLoginSuccess({
+          id: 'usr_admin_001',
+          email: 'admin@gmail.com',
+          username: 'Super Admin',
+          avatarText: 'AD',
+          isAdmin: true,
+          vipLevel: 6,
+          vipName: 'VIP 6 - Master Admin',
+          balance: 50000.00,
+          commissionRate: 0.08,
+          isVerified: true,
+          unreadNotifications: 3,
+        });
+      } else {
+        const username = email.includes('@') ? email.split('@')[0] : 'User';
+        onLoginSuccess({
+          email,
+          username,
+          avatarText: username.slice(0, 2).toUpperCase(),
+          isAdmin: false,
+        });
+      }
     }, 500);
   };
 

@@ -12,6 +12,7 @@ import { EarnView } from './components/EarnView';
 import { RecordView } from './components/RecordView';
 import { SupportView } from './components/SupportView';
 import { AccountView } from './components/AccountView';
+import { AdminDashboardView } from './components/admin/AdminDashboardView';
 
 import { RechargeModal } from './components/modals/RechargeModal';
 import { WithdrawalModal } from './components/modals/WithdrawalModal';
@@ -23,8 +24,22 @@ import { LiveChatModal } from './components/modals/LiveChatModal';
 import { KYCModal } from './components/modals/KYCModal';
 import { SecurityModal } from './components/modals/SecurityModal';
 
-import { initialUser } from './mockData';
-import { NavigationTab, UserProfile, OrderItem } from './types';
+import {
+  initialUser,
+  initialManagedUsers,
+  initialDepositRequests,
+  initialWithdrawalRequests,
+  defaultPlatformSettings,
+} from './mockData';
+import {
+  NavigationTab,
+  UserProfile,
+  OrderItem,
+  ManagedUser,
+  DepositRequest,
+  WithdrawalRequest,
+  PlatformSettings,
+} from './types';
 import { CheckCircle2, MessageSquare } from 'lucide-react';
 
 export default function App() {
@@ -33,6 +48,12 @@ export default function App() {
   const [user, setUser] = useState<UserProfile>(initialUser);
   const [orders, setOrders] = useState<OrderItem[]>([]);
   const [toastMessage, setToastMessage] = useState<string | null>(null);
+
+  // Admin Data State
+  const [managedUsers, setManagedUsers] = useState<ManagedUser[]>(initialManagedUsers);
+  const [depositRequests, setDepositRequests] = useState<DepositRequest[]>(initialDepositRequests);
+  const [withdrawalRequests, setWithdrawalRequests] = useState<WithdrawalRequest[]>(initialWithdrawalRequests);
+  const [platformSettings, setPlatformSettings] = useState<PlatformSettings>(defaultPlatformSettings);
 
   // Modals state
   const [isRechargeOpen, setIsRechargeOpen] = useState(false);
@@ -59,8 +80,14 @@ export default function App() {
       ...loginData,
     }));
     setIsAuthenticated(true);
-    setCurrentTab('home');
-    showToast(`Welcome back, ${loginData.username || 'User'}!`);
+    // If admin logs in, default to Admin dashboard or home
+    if (loginData.isAdmin) {
+      setCurrentTab('admin');
+      showToast(`Welcome Master Admin! Control Dashboard active.`);
+    } else {
+      setCurrentTab('home');
+      showToast(`Welcome back, ${loginData.username || 'User'}!`);
+    }
   };
 
   const handleDepositSuccess = (amount: number) => {
@@ -68,6 +95,19 @@ export default function App() {
       ...prev,
       balance: prev.balance + amount,
     }));
+    // Also create a deposit request record for admin
+    const newDepReq: DepositRequest = {
+      id: `dep_${Date.now()}`,
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      amount,
+      network: 'USDT (TRC-20)',
+      txHash: `0x${Math.random().toString(16).substring(2)}${Math.random().toString(16).substring(2)}`,
+      status: 'approved',
+      createdAt: 'Just now',
+    };
+    setDepositRequests((prev) => [newDepReq, ...prev]);
     showToast(`Successfully deposited +${amount.toFixed(2)} USDT!`);
   };
 
@@ -76,6 +116,19 @@ export default function App() {
       ...prev,
       balance: Math.max(0, prev.balance - amount),
     }));
+    // Create pending withdrawal request in admin panel
+    const newWthReq: WithdrawalRequest = {
+      id: `wth_${Date.now()}`,
+      userId: user.id,
+      username: user.username,
+      email: user.email,
+      amount,
+      network: 'USDT (TRC-20)',
+      walletAddress: 'TYD2v7wM4Uq8vYx1zNkLpQ9wEx8v5J3K7L',
+      status: 'pending',
+      createdAt: 'Just now',
+    };
+    setWithdrawalRequests((prev) => [newWthReq, ...prev]);
     showToast(`Withdrawal of ${amount.toFixed(2)} USDT submitted for processing.`);
   };
 
@@ -110,6 +163,94 @@ export default function App() {
     setIsGrabOrderOpen(true);
   };
 
+  // Admin Actions Handlers
+  const handleUpdateManagedUser = (updatedUser: ManagedUser) => {
+    setManagedUsers((prev) =>
+      prev.map((u) => (u.id === updatedUser.id ? updatedUser : u))
+    );
+    // If not found (new user created), add it
+    if (!managedUsers.some((u) => u.id === updatedUser.id)) {
+      setManagedUsers((prev) => [updatedUser, ...prev]);
+    }
+    // If the admin edited the current user account
+    if (updatedUser.id === user.id || updatedUser.email === user.email) {
+      setUser((prev) => ({
+        ...prev,
+        balance: updatedUser.balance,
+        vipLevel: updatedUser.vipLevel,
+        vipName: updatedUser.vipName,
+        commissionRate: updatedUser.commissionRate,
+      }));
+    }
+    showToast(`User ${updatedUser.username} updated successfully!`);
+  };
+
+  const handleApproveDeposit = (depositId: string) => {
+    setDepositRequests((prev) =>
+      prev.map((d) => {
+        if (d.id === depositId) {
+          // Credit user balance in managed users
+          setManagedUsers((uList) =>
+            uList.map((u) =>
+              u.id === d.userId || u.email === d.email
+                ? { ...u, balance: u.balance + d.amount, totalDeposited: u.totalDeposited + d.amount }
+                : u
+            )
+          );
+          return { ...d, status: 'approved' as const };
+        }
+        return d;
+      })
+    );
+    showToast('Deposit approved and credited to user wallet!');
+  };
+
+  const handleRejectDeposit = (depositId: string) => {
+    setDepositRequests((prev) =>
+      prev.map((d) => (d.id === depositId ? { ...d, status: 'rejected' as const } : d))
+    );
+    showToast('Deposit request rejected.');
+  };
+
+  const handleApproveWithdrawal = (withdrawalId: string) => {
+    setWithdrawalRequests((prev) =>
+      prev.map((w) => {
+        if (w.id === withdrawalId) {
+          setManagedUsers((uList) =>
+            uList.map((u) =>
+              u.id === w.userId || u.email === w.email
+                ? { ...u, totalWithdrawn: u.totalWithdrawn + w.amount }
+                : u
+            )
+          );
+          return { ...w, status: 'approved' as const, processedAt: 'Just now' };
+        }
+        return w;
+      })
+    );
+    showToast('Withdrawal approved and marked sent!');
+  };
+
+  const handleRejectWithdrawal = (withdrawalId: string) => {
+    setWithdrawalRequests((prev) =>
+      prev.map((w) => {
+        if (w.id === withdrawalId) {
+          // Refund user balance
+          setManagedUsers((uList) =>
+            uList.map((u) =>
+              u.id === w.userId || u.email === w.email
+                ? { ...u, balance: u.balance + w.amount }
+                : u
+            )
+          );
+          return { ...w, status: 'rejected' as const };
+        }
+        return w;
+      })
+    );
+    showToast('Withdrawal rejected and funds refunded to user.');
+  };
+
   if (!isAuthenticated) {
     return <AuthScreen onLoginSuccess={handleLoginSuccess} />;
   }
@@ -127,6 +268,8 @@ export default function App() {
       {/* Top Header */}
       <TopHeader
         user={user}
+        currentTab={currentTab}
+        onSelectTab={setCurrentTab}
         onNavigateToAccount={() => setCurrentTab('account')}
         onLogout={() => {
           setIsAuthenticated(false);
@@ -179,12 +322,33 @@ export default function App() {
             onNavigate={setCurrentTab}
           />
         )}
+
+        {/* Super Admin Control Panel */}
+        {currentTab === 'admin' && user.isAdmin && (
+          <AdminDashboardView
+            users={managedUsers}
+            onUpdateUser={handleUpdateManagedUser}
+            depositRequests={depositRequests}
+            onApproveDeposit={handleApproveDeposit}
+            onRejectDeposit={handleRejectDeposit}
+            withdrawalRequests={withdrawalRequests}
+            onApproveWithdrawal={handleApproveWithdrawal}
+            onRejectWithdrawal={handleRejectWithdrawal}
+            platformSettings={platformSettings}
+            onUpdateSettings={(newSet) => {
+              setPlatformSettings(newSet);
+              showToast('Platform settings saved!');
+            }}
+            onExitAdminView={() => setCurrentTab('home')}
+          />
+        )}
       </main>
 
       {/* Bottom Navigation Bar */}
       <BottomNavBar
         currentTab={currentTab}
         onSelectTab={setCurrentTab}
+        isAdmin={user.isAdmin}
       />
 
       {/* Floating Live Support Button */}
